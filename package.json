@@ -19,6 +19,7 @@
         "@vue/eslint-config-typescript": "^11.0.3",
         "eslint": "^8.45.0",
         "eslint-plugin-vue": "^9.15.1",
+        "three": "^0.154.0",
         "typescript": "^5.0.2",
         "vite": "^4.4.5",
         "vue-eslint-parser": "^9.3.1",
