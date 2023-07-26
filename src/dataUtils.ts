@@ -1,17 +1,18 @@
+import * as THREE from 'three';
+
 /**
- * 根据字符串生成唯一颜色
- * @param value 字符串
+ * 经纬度转换为3D坐标
+ * @param latitude 经度
+ * @param longitude 纬度
+ * @param radius 需要转换坐标的圆的半径
  */
-export function generateColor(value:string) {
-    // 使用字符串哈希函数计算国家名称的哈希值
-    let hashCode = 0;
-    for (let i = 0; i < value.length; i++) {
-        hashCode = value.charCodeAt(i) + ((hashCode << 5) - hashCode); // 简单的哈希算法
-    }
-    // 将哈希值限制在0到360之间
-    const hue = Math.abs(hashCode % 360);
-    // 转换为HSL颜色模式
-    const saturation = 60; // 饱和度
-    const lightness = 70; // 亮度
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+export function convertTo3D(latitude, longitude, radius) {
+    // 将经纬度转换为弧度
+    const phi = (90 - latitude) * Math.PI / 180;
+    const theta = (longitude + 180) * Math.PI / 180;
+    // 计算在球体上的坐标
+    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+    const y = radius * Math.cos(phi);
+    const z = radius * Math.sin(phi) * Math.sin(theta);
+    return new THREE.Vector3(x, y, z);
 }
