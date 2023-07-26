@@ -94,6 +94,7 @@ module.exports = {
         ], // 强制在代码块中使用一致的大括号风格
         camelcase: [0, { properties: 'always' }], // 强制使用骆驼拼写法命名约定
         'comma-dangle': [2, 'never'], // 要求或禁止末尾逗号
+        'vue/valid-template-root': 0,
         'comma-spacing': [
             2,
             {

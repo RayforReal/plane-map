@@ -1,12 +1,14 @@
+<template/>
 <script setup lang="ts">
 import * as THREE from 'three';
-
+import worldJson from './world.json';
 // 相机
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10);
-camera.position.z = 1;
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 10, 1000);
+camera.position.z = 100;
 
 // 场景
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030311)
 
 // 渲染器
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -17,11 +19,18 @@ function animation() {
 }
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
+console.log(worldJson);
 
-const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+const points = []
+worldJson.features[0].geometry.coordinates[0].forEach(item => {
+    points.push(new THREE.Vector2(item[0], item[1]))
+})
+const shape = new THREE.Shape(points);
+const geometry = new THREE.ShapeGeometry(shape);
 const material = new THREE.MeshNormalMaterial();
 const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
+
+scene.add(mesh)
 </script>
 
 <style>
