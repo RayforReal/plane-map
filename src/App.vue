@@ -116,7 +116,7 @@ function onPointerMove(event:MouseEvent) {
     if (hoverArea) {
         Object.assign(titleState, {
             left: `${event.clientX}px`,
-            top: `${event.clientY}px`,
+            top: `${event.clientY - 50}px`,
             country: countryNameJson[hoverArea.object.name]
         })
     } else {
@@ -150,7 +150,7 @@ window.addEventListener('pointermove', onPointerMove);
     position: absolute;
     padding: 12px;
     border-radius: 5px;
-    background-color: #c5c5c5ff;
-    border: 1px solid rgba(0, 0, 0, .45);
+    background-color: rgba(189, 173, 173, 0.8);
+    border: 1px solid rgba(0, 0, 0, .3);
 }
 </style>
