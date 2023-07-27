@@ -1,11 +1,27 @@
-<template/>
+<template>
+    <div
+        ref="titleRef"
+        class="title"
+        v-show="titleState.country"
+        :style="{'top':titleState.top,'left':titleState.left}">
+        {{ titleState.country }}
+    </div>
+</template>
 <script setup lang="ts">
+import { reactive, ref } from 'vue';
 import * as THREE from 'three';
 import worldJson from './world.json';
+import countryNameJson from './countryName.json';
 import { Group, Intersection } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Position } from "geojson";
 
+const titleRef = ref()
+const titleState = reactive({
+    country: '',
+    top: '0px',
+    left: '0px'
+})
 // 相机
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 10, 1000);
 camera.position.z = 400;
@@ -21,27 +37,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 // 添加相机控件
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
 
-// 法线实现hover修改区域颜色
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-let hoverArea:Intersection|null = null;
-
 // 动画
 function animation() {
-    // 通过摄像机和鼠标位置更新射线
-    raycaster.setFromCamera(pointer, camera);
-    if (hoverArea) {
-        hoverArea.object.material.color.set(hoverArea.object.name === 'China' ? '#f6647c' : '#e10d04');
-        hoverArea = null;
-    }
-    // 计算物体和射线的焦点
-    const intersects = raycaster.intersectObjects(scene.children);
-    for (let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.isMesh) {
-            hoverArea = intersects[i]
-            intersects[i].object.material.color.set(0x000000);
-        }
-    }
     controls.update();
     renderer.render(scene, camera);
 }
@@ -107,17 +104,53 @@ worldJson.features.forEach(country => {
 });
 scene.add(allArea, ...allLine)
 
-function onPointerMove(event) {
+// 法线实现hover修改区域颜色
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let hoverArea: Intersection | null = null;
+
+function onPointerMove(event:MouseEvent) {
     // 将鼠标位置归一化为设备坐标。x 和 y 方向的取值范围是 (-1 to +1)
     pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    if (hoverArea) {
+        Object.assign(titleState, {
+            left: `${event.clientX}px`,
+            top: `${event.clientY}px`,
+            country: countryNameJson[hoverArea.object.name]
+        })
+    } else {
+        Object.assign(titleState, {
+            top: '',
+            left: '',
+            country: ''
+        })
+    }
+    // 通过摄像机和鼠标位置更新射线
+    raycaster.setFromCamera(pointer, camera);
+    if (hoverArea) {
+        hoverArea.object.material.color.set(hoverArea.object.name === 'China' ? '#f6647c' : '#e10d04');
+        hoverArea = null;
+    }
+    // 计算物体和射线的焦点
+    const intersects = raycaster.intersectObjects(scene.children);
+    for (let i = 0; i < intersects.length; i++) {
+        if (intersects[i].object.isMesh) {
+            hoverArea = intersects[i];
+            intersects[i].object.material.color.set(0x000000);
+        }
+    }
 }
 
 window.addEventListener('pointermove', onPointerMove);
 </script>
 
-<style>
-* {
-    margin: 0;
+<style scoped>
+.title {
+    position: absolute;
+    padding: 12px;
+    border-radius: 5px;
+    background-color: #c5c5c5ff;
+    border: 1px solid rgba(0, 0, 0, .45);
 }
 </style>
