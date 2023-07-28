@@ -15,6 +15,7 @@ import countryNameJson from './countryName.json';
 import { Group, Intersection } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Position } from "geojson";
+import { get2DToClient, getClientTo2D, getAreaCenter } from "./dataUtils";
 
 const titleRef = ref()
 const titleState = reactive({
@@ -24,7 +25,7 @@ const titleState = reactive({
 })
 // 相机
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 10, 1000);
-camera.position.z = 400;
+camera.position.z = 250;
 
 // 场景
 const scene = new THREE.Scene();
@@ -110,13 +111,13 @@ const pointer = new THREE.Vector2();
 let hoverArea: Intersection | null = null;
 
 function onPointerMove(event:MouseEvent) {
-    // 将鼠标位置归一化为设备坐标。x 和 y 方向的取值范围是 (-1 to +1)
-    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // 将鼠标位置归一化为设备坐标。x 和 y 方向的取值范围是 (-1 to +1)\
+    pointer.copy(getClientTo2D(event.clientX, event.clientY))
     if (hoverArea) {
+        const { x, y } = get2DToClient(getAreaCenter(hoverArea.object))
         Object.assign(titleState, {
-            left: `${event.clientX}px`,
-            top: `${event.clientY - 50}px`,
+            left: `${x}px`,
+            top: `${y}px`,
             country: countryNameJson[hoverArea.object.name]
         })
     } else {
@@ -148,9 +149,7 @@ window.addEventListener('pointermove', onPointerMove);
 <style scoped>
 .title {
     position: absolute;
-    padding: 12px;
-    border-radius: 5px;
-    background-color: rgba(189, 173, 173, 0.8);
-    border: 1px solid rgba(0, 0, 0, .3);
+    font-size: 12px;
+    color: red;
 }
 </style>
