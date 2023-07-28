@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { Object3D, Vector3 } from "three";
-
+import { Object3D, Vector3, Camera } from "three";
 /**
  * 经纬度转换为3D坐标
  * @param latitude 经度
@@ -30,17 +29,20 @@ export const getAreaCenter = (mesh:Object3D) => {
     // 获取边界框的中心点坐标
     const center = new THREE.Vector3();
     boundingBox.getCenter(center);
-    return center.clone()
+    return center.clone();
 }
 
 /**
- * 将三维坐标转换为屏幕 clientX 和 clientY
+ * 将三维坐标转换为屏幕 clientX 和 clientY // 将屏幕坐标转换到DOM坐标
  * @param vector
+ * @param camera
  */
-export const get2DToClient = (vector:Vector3) => {
+export const get2DToClient = (vector:Vector3, camera:Camera) => {
+    // 将中心点坐标转换到屏幕坐标
+    const center = vector.clone().project(camera);
     return {
-        x: ((vector.x + 1) / 2) * window.innerWidth,
-        y: ((1 - vector.y) / 2) * window.innerHeight
+        x: ((center.x + 1) / 2) * window.innerWidth,
+        y: ((1 - center.y) / 2) * window.innerHeight
     }
 }
 
@@ -55,4 +57,20 @@ export const getClientTo2D = (x:number, y:number) => {
     pointer.x = (x / window.innerWidth) * 2 - 1;
     pointer.y = -(y / window.innerHeight) * 2 + 1;
     return pointer.clone()
+}
+
+export const getCenterOfMass = (mesh:Object3D) => {
+    // 获取mesh的顶点数据
+    const positionAttribute = mesh.geometry.attributes.position;
+    const totalVertices = positionAttribute.count;
+    // 计算重心点的累加坐标
+    const centerOfMass = new THREE.Vector3();
+    for (let i = 0; i < totalVertices; i++) {
+        const vertex = new THREE.Vector3();
+        vertex.fromBufferAttribute(positionAttribute, i);
+        centerOfMass.add(vertex);
+    }
+    // 计算重心点的平均坐标
+    centerOfMass.divideScalar(totalVertices);
+    return centerOfMass
 }

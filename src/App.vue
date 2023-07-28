@@ -6,6 +6,7 @@
         :style="{'top':titleState.top,'left':titleState.left}">
         {{ titleState.country }}
     </div>
+    <span class="title">中国</span>
 </template>
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
@@ -15,7 +16,7 @@ import countryNameJson from './countryName.json';
 import { Group, Intersection } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Position } from "geojson";
-import { get2DToClient, getClientTo2D, getAreaCenter } from "./dataUtils";
+import { get2DToClient, getClientTo2D, getCenterOfMass } from "./dataUtils";
 
 const titleRef = ref()
 const titleState = reactive({
@@ -114,11 +115,12 @@ function onPointerMove(event:MouseEvent) {
     // 将鼠标位置归一化为设备坐标。x 和 y 方向的取值范围是 (-1 to +1)\
     pointer.copy(getClientTo2D(event.clientX, event.clientY))
     if (hoverArea) {
-        const { x, y } = get2DToClient(getAreaCenter(hoverArea.object))
+        const { x, y } = get2DToClient(getCenterOfMass(hoverArea.object), camera)
+        const country = countryNameJson[hoverArea.object.name]
         Object.assign(titleState, {
-            left: `${x}px`,
-            top: `${y}px`,
-            country: countryNameJson[hoverArea.object.name]
+            left: `${x - (country.length - 1) * 12 / 2}px`,
+            top: `${y - 8}px`,
+            country
         })
     } else {
         Object.assign(titleState, {
@@ -134,12 +136,10 @@ function onPointerMove(event:MouseEvent) {
         hoverArea = null;
     }
     // 计算物体和射线的焦点
-    const intersects = raycaster.intersectObjects(scene.children);
+    const intersects = raycaster.intersectObjects(allArea.children);
     for (let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.isMesh) {
-            hoverArea = intersects[i];
-            intersects[i].object.material.color.set(0x000000);
-        }
+        hoverArea = intersects[i];
+        intersects[i].object.material.color.set(0x000000);
     }
 }
 
@@ -150,6 +150,6 @@ window.addEventListener('pointermove', onPointerMove);
 .title {
     position: absolute;
     font-size: 12px;
-    color: red;
+    color: #43c1c0 ;
 }
 </style>
