@@ -41,9 +41,9 @@ export default class {
             center,
             target
         );
-        const points = curve.getPoints(length * 2);
+        const points = curve.getPoints(length * 4);
         // 粒子运动
-        this.playPoint(points, length * 2)
+        this.playPoint(points, length * 4)
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         const material = new THREE.LineBasicMaterial({ color: 0x888888 });
         this.line.push(new THREE.Line(geometry, material));
@@ -61,7 +61,7 @@ export default class {
         geometry.setAttribute('a_position', new THREE.Float32BufferAttribute(aPositions, 1))
         const material = new THREE.ShaderMaterial({
             uniforms: {
-                u_range: { value: 100 },
+                u_range: { value: 200 },
                 u_size: { value: 20 },
                 u_color: { value: new THREE.Color('#00bbff') },
                 u_total: { value: length },
