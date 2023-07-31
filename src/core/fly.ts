@@ -80,19 +80,14 @@ export default class {
                 void main() {
                    float size = u_size;
                    float total_number = u_total * mod(u_time, 1.0);
-                   
                    if (total_number > a_position && total_number < a_position + u_range) {
-                   
                      // 拖尾效果
                      float index = (a_position + u_range - total_number) / u_range;
                      size *= index;
-                     
-                     
                      v_opacity = 1.0;
                    } else {
                      v_opacity = 0.0;
                    }
-                   
                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                    gl_PointSize = size / 10.0;
                 }
