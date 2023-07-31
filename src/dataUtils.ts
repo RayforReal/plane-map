@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 import { Object3D, Vector3, Camera } from "three";
 /**
- * 经纬度转换为3D坐标
+ * 经纬度转换为2D坐标
  * @param latitude 经度
  * @param longitude 纬度
- * @param radius 需要转换坐标的圆的半径
  */
-export function convertTo3D(latitude, longitude, radius) {
-    // 将经纬度转换为弧度
-    const phi = (90 - latitude) * Math.PI / 180;
-    const theta = (longitude + 180) * Math.PI / 180;
-    // 计算在球体上的坐标
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const y = radius * Math.cos(phi);
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-    return new THREE.Vector3(x, y, z);
+export function convertTo2D(latitude, longitude) {
+    // 经纬度转为弧度
+    const phi = THREE.MathUtils.degToRad(90 - latitude);
+    const theta = THREE.MathUtils.degToRad(longitude);
+
+    // 构造二维坐标
+    const x = Math.cos(phi) * Math.cos(theta);
+    const y = Math.cos(phi) * Math.sin(theta);
+
+    return new THREE.Vector3(x, y, 0);
 }
 
 /**
@@ -59,6 +59,10 @@ export const getClientTo2D = (x:number, y:number) => {
     return pointer.clone()
 }
 
+/**
+ * 计算重心
+ * @param mesh
+ */
 export const getCenterOfMass = (mesh:Object3D) => {
     // 获取mesh的顶点数据
     const positionAttribute = mesh.geometry.attributes.position;
@@ -73,4 +77,23 @@ export const getCenterOfMass = (mesh:Object3D) => {
     // 计算重心点的平均坐标
     centerOfMass.divideScalar(totalVertices);
     return centerOfMass
+}
+/**
+ * 随机生成经纬度 from to
+ */
+export const getRandomPosition = (count = 10) => {
+    const data = []
+    for (let i = 0; i < count; i++) {
+        data.push({
+            from: {
+                lon: (Math.random() * 360) - 180,
+                lat: (Math.random() * 180) - 90
+            },
+            to: {
+                lon: (Math.random() * 360) - 180,
+                lat: (Math.random() * 180) - 90
+            }
+        })
+    }
+    return data
 }

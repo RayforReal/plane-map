@@ -6,17 +6,16 @@
         :style="{'top':titleState.top,'left':titleState.left}">
         {{ titleState.country }}
     </div>
-    <span class="title">中国</span>
 </template>
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import * as THREE from 'three';
-import worldJson from './world.json';
 import countryNameJson from './countryName.json';
-import { Group, Intersection } from "three";
+import { Intersection } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { Position } from "geojson";
-import { get2DToClient, getClientTo2D, getCenterOfMass } from "./dataUtils";
+import { get2DToClient, getClientTo2D, getCenterOfMass, getRandomPosition } from "./dataUtils";
+import Fly from './core/fly';
+import Country from './core/country';
 
 const titleRef = ref()
 const titleState = reactive({
@@ -38,7 +37,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 // 添加相机控件
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
-
+controls.enableRotate = false;
 // 动画
 function animation() {
     controls.update();
@@ -48,63 +47,14 @@ function animation() {
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
 
-// 创建国家区域面
-const creatAreaMesh = (positions, name) => {
-    const shape = new THREE.Shape(positions.map(item => new THREE.Vector2(item[0], item[1])));
-    const geometry = new THREE.ShapeGeometry(shape);
+// 创建国家
+const country = new Country();
 
-    const material = new THREE.MeshBasicMaterial({
-        color: name === 'China' ? '#f6647c' : '#e10d04',
-        side: THREE.DoubleSide,
-        opacity: 0.8,
-        transparent: true
-    });
-    const mesh = new THREE.Mesh(geometry, material)
-    name && (mesh.name = name)
-    return mesh
-}
+// 创建飞线
+const positionList = getRandomPosition(1);
+const fly = new Fly(positionList)
 
-// 创建国家区域轮廓线条
-function createLine(positions: Position[], countryName: string) {
-    const geometry = new THREE.BufferGeometry();
-    const material = new THREE.LineBasicMaterial({ color: 0xffffff });
-    const vertices = [];
-    for (let i = 0; i < positions.length; i++) {
-        const longitude = positions[i][0];
-        const latitude = positions[i][1];
-        vertices.push(longitude, latitude, 0.1);
-    }
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    const line = new THREE.Line(geometry, material);
-    const countryGroup = new Group();
-    if (countryName) {
-        countryGroup.name = `countryGroup-${countryName}`;
-    }
-    countryGroup.add(line);
-    return countryGroup;
-}
-
-const allArea = new Group();
-const allLine: Group[] = [];
-worldJson.features.forEach(country => {
-    // 单轮廓国家
-    if (country.geometry.type === "Polygon") {
-        const positions = country.geometry.coordinates.flat();
-        allArea.add(creatAreaMesh(positions, country.properties.name))
-        allLine.push(createLine(positions, country.properties.name))
-    } else {
-        // 多个轮廓国家 中国-台湾
-        const multiPositions = country.geometry.coordinates;
-        for (let j = 0; j < multiPositions.length; j++) {
-            const positions = multiPositions[j];
-            for (let i = 0; i < positions.length; i++) {
-                allArea.add(creatAreaMesh(positions[i], country.properties.name));
-                allLine.push(createLine(positions[i], country.properties.name))
-            }
-        }
-    }
-});
-scene.add(allArea, ...allLine)
+scene.add(...country.getCountry(), fly.getLine())
 
 // 法线实现hover修改区域颜色
 const raycaster = new THREE.Raycaster();
@@ -112,13 +62,13 @@ const pointer = new THREE.Vector2();
 let hoverArea: Intersection | null = null;
 
 function onPointerMove(event:MouseEvent) {
-    // 将鼠标位置归一化为设备坐标。x 和 y 方向的取值范围是 (-1 to +1)\
+    // 将鼠标位置归一化为设备坐标x 和 y 方向的取值范围是 (-1 to +1)\
     pointer.copy(getClientTo2D(event.clientX, event.clientY))
     if (hoverArea) {
         const { x, y } = get2DToClient(getCenterOfMass(hoverArea.object), camera)
         const country = countryNameJson[hoverArea.object.name]
         Object.assign(titleState, {
-            left: `${x - (country.length - 1) * 12 / 2}px`,
+            left: `${x - (country.length || 1 - 1) * 12 / 2}px`,
             top: `${y - 8}px`,
             country
         })
@@ -136,7 +86,7 @@ function onPointerMove(event:MouseEvent) {
         hoverArea = null;
     }
     // 计算物体和射线的焦点
-    const intersects = raycaster.intersectObjects(allArea.children);
+    const intersects = raycaster.intersectObjects(country.getCountryArea().children);
     for (let i = 0; i < intersects.length; i++) {
         hoverArea = intersects[i];
         intersects[i].object.material.color.set(0x000000);
