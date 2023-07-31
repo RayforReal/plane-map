@@ -78,22 +78,3 @@ export const getCenterOfMass = (mesh:Object3D) => {
     centerOfMass.divideScalar(totalVertices);
     return centerOfMass
 }
-/**
- * 随机生成经纬度 from to
- */
-export const getRandomPosition = (count = 10) => {
-    const data = []
-    for (let i = 0; i < count; i++) {
-        data.push({
-            from: {
-                lon: (Math.random() * 360) - 180,
-                lat: (Math.random() * 180) - 90
-            },
-            to: {
-                lon: (Math.random() * 360) - 180,
-                lat: (Math.random() * 180) - 90
-            }
-        })
-    }
-    return data
-}
