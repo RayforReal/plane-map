@@ -74,10 +74,15 @@ export default class {
         if (this.textObject3D) {
             this.scene.remove(this.textObject3D)
             this.textObject3D = null
+            this.object3D = null
         }
     }
 
     createTextMesh(object3D: Object3D) {
+        if (object3D.uuid === this.object3D?.uuid) {
+            return;
+        }
+        this.clearTextMesh()
         if (countryNameJson[object3D.name]) {
             this.object3D = object3D;
             this.createTextQueue(countryNameJson[object3D.name])

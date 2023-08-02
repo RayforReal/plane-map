@@ -70,16 +70,17 @@ function onPointerMove(event: MouseEvent) {
     // 通过摄像机和鼠标位置更新射线
     raycaster.setFromCamera(pointer, camera);
     if (hoverArea) {
-        hoverFont.clearTextMesh()
         hoverArea.object.material.color.set(hoverArea.object.name === 'China' ? '#f6647c' : '#e10d04');
         hoverArea = null;
     }
     // 计算物体和射线的焦点
     const intersects = raycaster.intersectObjects(country.getCountryArea().children);
-    for (let i = 0; i < intersects.length; i++) {
-        hoverArea = intersects[i];
+    if (intersects[0]) {
+        hoverArea = intersects[0];
         hoverFont.createTextMesh(hoverArea.object)
-        intersects[i].object.material.color.set(0x000000);
+        intersects[0].object.material.color.set(0x000000);
+    } else {
+        hoverFont.clearTextMesh()
     }
 }
 
