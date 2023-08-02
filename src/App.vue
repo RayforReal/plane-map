@@ -23,7 +23,10 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 // 添加相机控件
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
+// 禁止旋转
 controls.enableRotate = false;
+// 禁止缩放
+controls.enableZoom = false;
 
 // 创建国家
 const country = new Country();
@@ -32,12 +35,12 @@ const country = new Country();
 const fly = new Fly([
     {
         from: {
-            lon: 30.5728,
-            lat: 104.0668
-        },
-        to: {
             lon: 44.9635,
             lat: -103.4823
+        },
+        to: {
+            lon: 30.5728,
+            lat: 104.0668
         }
     },
     {

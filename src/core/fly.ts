@@ -1,8 +1,11 @@
-import { Line, Vector3, Points } from "three";
+import { Line, Vector3, Points, Mesh } from "three";
 import * as THREE from "three";
+import Radar from './radar';
 
 export default class {
     public line: Line[];
+
+    public radar: Mesh[];
 
     public playPoints: Points[];
 
@@ -10,10 +13,12 @@ export default class {
 
     constructor(position) {
         this.line = []
+        this.radar = []
         this.playPoints = []
         this.time = { value: 0 }
         position.forEach(item => {
             this.creatFly(item);
+            this.creatRadar(item);
         })
     }
 
@@ -106,7 +111,7 @@ export default class {
     }
 
     getLine() {
-        return this.line;
+        return [...this.line, ...this.radar];
     }
 
     getPlayPoints() {
@@ -115,5 +120,12 @@ export default class {
 
     setTime(time) {
         this.time.value += time
+    }
+
+    creatRadar(position) {
+        // 创建雷达
+        const radarInstance = new Radar(this.time);
+        this.radar.push(radarInstance.getRadarMesh(position.from))
+        this.radar.push(radarInstance.getRadarMesh(position.to))
     }
 }
