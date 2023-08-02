@@ -19,7 +19,7 @@ export default class {
 
     creatFly(position) {
         // 起始点
-        const soure = new THREE.Vector3(
+        const source = new THREE.Vector3(
             position.from.lat,
             position.from.lon,
             0
@@ -31,13 +31,13 @@ export default class {
             0
         )
         // 获取中心点
-        const center = soure.clone().lerp(target, 0.5)
+        const center = source.clone().lerp(target, 0.5)
         center.z = 100
         // 起点到终点的距离
-        const length = Math.round(soure.distanceTo(target));
+        const length = Math.round(source.distanceTo(target));
         // 添加贝塞尔曲线运动
         const curve = new THREE.QuadraticBezierCurve3(
-            soure,
+            source,
             center,
             target
         );
@@ -99,7 +99,8 @@ export default class {
                 void main() {
                   gl_FragColor = vec4(u_color, v_opacity);
                 }
-            `
+            `,
+            transparent: true
         });
         this.playPoints.push(new THREE.Points(geometry, material))
     }

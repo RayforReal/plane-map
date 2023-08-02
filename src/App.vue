@@ -1,29 +1,14 @@
-<template>
-    <div
-        ref="titleRef"
-        class="title"
-        v-show="titleState.country"
-        :style="{'top':titleState.top,'left':titleState.left}">
-        {{ titleState.country }}
-    </div>
-</template>
+<template/>
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
 import * as THREE from 'three';
-import countryNameJson from './countryName.json';
 import { Intersection } from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { get2DToClient, getClientTo2D, getCenterOfMass } from "./dataUtils";
+import { getClientTo2D } from "./dataUtils";
 import Fly from './core/fly';
 import Country from './core/country';
+import HoverFont from './core/hoverFont';
 
 const clock = new THREE.Clock();
-const titleRef = ref()
-const titleState = reactive({
-    country: '',
-    top: '0px',
-    left: '0px'
-})
 // 相机
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 10, 1000);
 camera.position.z = 250;
@@ -40,7 +25,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 const controls: OrbitControls = new OrbitControls(camera, renderer.domElement);
 controls.enableRotate = false;
 
-
 // 创建国家
 const country = new Country();
 
@@ -48,18 +32,18 @@ const country = new Country();
 const fly = new Fly([
     {
         from: {
-            lon: 39.9042,
-            lat: 116.4074
+            lon: 30.5728,
+            lat: 104.0668
         },
         to: {
-            lon: 34.0522,
-            lat: -118.2437
+            lon: 44.9635,
+            lat: -103.4823
         }
     },
     {
         from: {
-            lon: -16.711816406249937,
-            lat: 12.354833984375006
+            lon: -25.1721,
+            lat: 29.8739
         },
         to: {
             lon: 61.524010,
@@ -67,6 +51,9 @@ const fly = new Fly([
         }
     }
 ])
+
+// 鼠标移入字体
+const hoverFont = new HoverFont(scene)
 
 scene.add(...country.getCountry(), ...fly.getLine(), ...fly.getPlayPoints())
 
@@ -80,24 +67,10 @@ let hoverArea: Intersection | null = null;
 function onPointerMove(event: MouseEvent) {
     // 将鼠标位置归一化为设备坐标x 和 y 方向的取值范围是 (-1 to +1)\
     pointer.copy(getClientTo2D(event.clientX, event.clientY))
-    if (hoverArea) {
-        const { x, y } = get2DToClient(getCenterOfMass(hoverArea.object), camera)
-        const country = countryNameJson[hoverArea.object.name]
-        Object.assign(titleState, {
-            left: `${x - (country.length || 1 - 1) * 12 / 2}px`,
-            top: `${y - 8}px`,
-            country
-        })
-    } else {
-        Object.assign(titleState, {
-            top: '',
-            left: '',
-            country: ''
-        })
-    }
     // 通过摄像机和鼠标位置更新射线
     raycaster.setFromCamera(pointer, camera);
     if (hoverArea) {
+        hoverFont.clearTextMesh()
         hoverArea.object.material.color.set(hoverArea.object.name === 'China' ? '#f6647c' : '#e10d04');
         hoverArea = null;
     }
@@ -105,9 +78,11 @@ function onPointerMove(event: MouseEvent) {
     const intersects = raycaster.intersectObjects(country.getCountryArea().children);
     for (let i = 0; i < intersects.length; i++) {
         hoverArea = intersects[i];
+        hoverFont.createTextMesh(hoverArea.object)
         intersects[i].object.material.color.set(0x000000);
     }
 }
+
 window.addEventListener('pointermove', onPointerMove);
 
 // 动画
@@ -120,11 +95,3 @@ function animation() {
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
 </script>
-
-<style scoped>
-.title {
-    position: absolute;
-    font-size: 12px;
-    color: #43c1c0;
-}
-</style>
